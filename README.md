@@ -57,7 +57,7 @@ The application is publicly accessible at:
 
 # Architecture Diagram
 
-![Architecture](diagrams/architecture.png)
+![Architecture](screenshots/architecture.png)
 
 ---
 
