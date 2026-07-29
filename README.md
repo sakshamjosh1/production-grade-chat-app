@@ -408,37 +408,26 @@ production-grade-chat-app
 
 ## Architecture Diagram
 
-//screenshot
+![Architecture](screenshots/architecture.png)
 
 ---
 
 ## AWS EC2 Instance
 
-//screenshot
+![Architecture](screenshots/aws-ec2.png)
 
 ---
 
-## Terraform Apply
-
-//screenshot
-
----
-
-## Ansible Playbook
-
-//screenshot
-
----
 
 ## GitHub Actions CI/CD
 
-//screenshot
+![Architecture](screenshots/pipeline.png)
 
 ---
 
 ## Running Application
 
-//screenshot
+![Architecture](screenshots/application.png)
 
 ---
 
