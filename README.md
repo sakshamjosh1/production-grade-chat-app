@@ -319,7 +319,7 @@ During the assignment, several deployment and infrastructure issues were identif
 ## 1. Clone Repository
 
 ```bash
-git clone https://github.com/<username>/production-grade-chat-app.git
+git clone https://github.com/sakshamjosh1/production-grade-chat-app.git
 
 cd production-grade-chat-app
 ```
