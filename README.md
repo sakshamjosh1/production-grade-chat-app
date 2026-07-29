@@ -1,51 +1,478 @@
-# DevOps Engineering Assignment: Real-Time Chat App
+# 🚀 Production Grade WebSocket Chat Application
 
-Welcome! In this assignment, you are tasked with fixing a broken staging environment for our Real-Time Chat web application. 
+> 🌐 **Live Demo:** http://13.205.195.122
 
-A junior developer recently attempted to containerize this application using Docker and NGINX, but the deployment is currently failing on multiple fronts. Your job is to debug their configuration files and get the application fully operational via Docker Compose.
+> 📂 **GitHub Repository:** https://github.com/sakshamjosh1/production-grade-chat-app
 
-## System Architecture
+---
 
-The application is built using two primary containers:
-1. **Backend (`backend`)**: A Python-based FastAPI server operating on Port 8000. It handles persistent, real-time WebSocket connections on the `/ws` endpoint.
-2. **Frontend Proxy (`nginx`)**: An NGINX container mapped to Port 80. It is responsible for serving the static files from the `frontend/` directory, while simultaneously intercepting and reverse-proxying all WebSocket upgrade requests down to the backend container.
+# Project Overview
 
-### Directory Structure
-```text
-realtime-chat-app/
-├── app/
-│   ├── main.py              # FastAPI application server
-│   └── requirements.txt     # Python dependencies
-├── frontend/
-│   └── index.html           # Simple, styled single-page HTML client
-├── Dockerfile               # Instructions to build the Python backend image
-├── docker-compose.yml       # Composes both NGINX and Python Backend services
-└── nginx.conf               # Configuration for NGINX routing and WS proxy
+This project was completed as part of a **DevOps Engineer Internship Assignment** focused on deploying a production-grade WebSocket chat application.
+
+The objective was to take a deliberately misconfigured application, identify and resolve deployment issues, and successfully deploy it on AWS while following production-oriented DevOps practices.
+
+In addition to completing all mandatory assignment requirements, I also implemented **Infrastructure as Code using Terraform**, **Configuration Management using Ansible**, and an automated **CI/CD pipeline using GitHub Actions** to make deployments fully reproducible.
+
+---
+
+# Assignment Requirements
+
+## Mandatory Requirements
+
+- ✅ Fix Dockerfile
+- ✅ Fix Docker Compose configuration
+- ✅ Configure Nginx Reverse Proxy
+- ✅ Configure WebSocket support
+- ✅ Deploy application on AWS EC2
+- ✅ Automate deployment using GitHub Actions
+- ✅ Create Architecture Diagram
+- ✅ Document the complete deployment process
+- ✅ Deploy application using a Live Public IP
+
+---
+
+## Bonus Features Implemented
+
+- ✅ Infrastructure as Code (Terraform)
+- ✅ Configuration Management (Ansible)
+
+### Future Improvements
+
+- HTTPS using Let's Encrypt
+- Monitoring using Grafana / Netdata
+- Redis Container
+- Load Balancer
+- Auto Scaling
+
+---
+
+# Live Deployment
+
+The application is publicly accessible at:
+
+> **http://13.205.195.122**
+
+---
+
+# Architecture Diagram
+
+![Architecture](diagrams/architecture.png)
+
+---
+
+## Request Flow
+
+```
+Developer
+     │
+ git push
+     │
+     ▼
+GitHub Repository
+     │
+GitHub Actions
+     │
+SSH
+     ▼
+AWS EC2
+     │
+Docker Compose
+     │
+ ┌───────────────┐
+ │               │
+ ▼               ▼
+Nginx        FastAPI
+ │               │
+ └────WebSocket──┘
+        │
+     Browser
 ```
 
-## Your Mission
+---
 
-If you run `docker-compose up -d --build` right now, the containers will start, but the application will not work. You need to debug and fix the following three critical issues:
+# Tech Stack
 
-### 1. Fix the Docker Binding (Container Networking)
-The FastAPI backend container is refusing external connections—even from the NGINX container! 
-* **Hint:** Look at how the `uvicorn` command is binding its host in the `Dockerfile`. Inside a Docker container, binding to `localhost` or `127.0.0.1` makes the service unreachable to other containers on the Docker network.
+## Cloud
 
-### 2. Fix the Missing User Interface (Volume Mounts)
-If you navigate to `http://localhost` right now, you will likely see the default "Welcome to NGINX" page instead of the chat application.
-* **Hint:** Check `docker-compose.yml`. How is the `nginx` container supposed to get access to the static HTML files located in the local `frontend/` directory? 
+- AWS EC2
+- Elastic IP
 
-### 3. Fix the WebSocket Tunnel (Reverse Proxy Configuration)
-Once the UI is visible, the chat app will continuously say "Disconnected" because the WebSocket handshake is failing.
-* **Hint #1:** In `nginx.conf`, the `proxy_pass` is attempting to route to `localhost:8000`. Does `localhost` mean the same thing inside the NGINX container as it does on your laptop? How do containers communicate with each other in a Compose network?
-* **Hint #2:** NGINX requires explicit headers to convert standard HTTP traffic into a persistent WebSocket tunnel. Some of the required `Upgrade` headers appear to be missing or disabled.
+## Infrastructure
 
-## Deliverables
+- Terraform
+- Ansible
 
-Submit your finalized, corrected codebase. We will evaluate your submission by executing:
+## Containerization
+
+- Docker
+- Docker Compose
+
+## Reverse Proxy
+
+- Nginx
+
+## Backend
+
+- FastAPI
+- Python
+- WebSockets
+
+## CI/CD
+
+- GitHub Actions
+
+---
+
+# Docker Container Setup
+
+The application consists of two Docker containers managed by Docker Compose.
+
+## Backend Container
+
+Responsibilities:
+
+- Runs the FastAPI application
+- Handles WebSocket connections
+- Listens internally on port **8000**
+
+The backend container is **not exposed publicly**.
+
+---
+
+## Nginx Container
+
+Responsibilities:
+
+- Serves the frontend
+- Acts as a reverse proxy
+- Forwards requests to the backend container
+- Handles WebSocket proxying
+- Exposes port **80** to the Internet
+
+Only the Nginx container is publicly accessible.
+
+---
+
+# Docker Networking
+
+Docker Compose automatically creates a dedicated bridge network for all services.
+
+```
+Internet
+    │
+    ▼
+Nginx Container
+    │
+Docker Network
+    │
+    ▼
+Backend Container
+```
+
+The backend container communicates with Nginx using the Docker service name:
+
+```
+backend:8000
+```
+
+Since both containers share the same Docker network, no backend ports need to be exposed publicly.
+
+This improves security while allowing seamless communication between containers.
+
+---
+
+# Nginx Reverse Proxy
+
+Nginx serves two primary purposes:
+
+- Serves the frontend application
+- Proxies backend requests to FastAPI
+
+Request flow:
+
+```
+Browser
+    │
+HTTP Request
+    │
+    ▼
+Nginx
+    │
+Reverse Proxy
+    │
+    ▼
+FastAPI
+```
+
+Using Nginx as a reverse proxy provides:
+
+- Better security
+- Centralized routing
+- Static file serving
+- WebSocket support
+- Easier scalability
+
+---
+
+# WebSocket through Nginx
+
+The application uses WebSockets for real-time communication.
+
+Unlike normal HTTP requests, WebSockets require an HTTP Upgrade handshake.
+
+The Nginx configuration was updated to correctly forward:
+
+- Upgrade headers
+- Connection headers
+- HTTP/1.1 requests
+
+This allows WebSocket connections to remain persistent between the browser and the backend application.
+
+Request flow:
+
+```
+Browser
+      │
+WebSocket Request
+      │
+      ▼
+Nginx
+      │
+Upgrade Connection
+      │
+      ▼
+FastAPI WebSocket
+```
+
+---
+
+# CI/CD Pipeline
+
+GitHub Actions automatically deploys the latest application whenever changes are pushed to the **master** branch.
+
+Pipeline flow:
+
+```
+Developer
+
+git push
+
+↓
+
+GitHub Repository
+
+↓
+
+GitHub Actions
+
+↓
+
+SSH into EC2
+
+↓
+
+git pull
+
+↓
+
+docker compose up -d --build
+
+↓
+
+Application Updated
+```
+
+The workflow performs the following steps:
+
+1. Trigger on every push to the master branch
+2. Connect to the AWS EC2 instance using SSH
+3. Pull the latest source code
+4. Rebuild Docker images
+5. Restart Docker Compose services
+6. Remove unused Docker images
+
+This eliminates manual deployments and ensures the server always runs the latest version of the application.
+
+---
+
+# Issues Found and Fixes
+
+During the assignment, several deployment and infrastructure issues were identified and resolved.
+
+| Issue | Cause | Fix |
+|---------|------|-----|
+| Docker image build issues | Dockerfile configuration | Updated Dockerfile and build context |
+| Docker Compose issues | Incorrect service configuration | Fixed Docker Compose networking and service definitions |
+| Backend communication failure | Container networking | Configured Docker networking correctly |
+| Nginx routing issues | Incorrect reverse proxy configuration | Updated nginx.conf |
+| WebSocket connection failure | Missing Upgrade and Connection headers | Added proper WebSocket proxy configuration |
+| Cloud deployment | Manual infrastructure setup | Provisioned AWS EC2 using Terraform |
+| Server configuration | Manual package installation | Automated with Ansible |
+| Continuous deployment | Manual deployment process | Implemented GitHub Actions CI/CD |
+| Stable public endpoint | Dynamic public IP | Configured Elastic IP |
+
+---
+
+# Deployment Steps
+
+## 1. Clone Repository
 
 ```bash
-docker-compose up -d --build
+git clone https://github.com/<username>/production-grade-chat-app.git
+
+cd production-grade-chat-app
 ```
 
-If everything is configured correctly, we should instantly see the UI and be able to open multiple browser tabs at `http://localhost` to chat back and forth in real-time. Good luck!
+---
+
+## 2. Provision Infrastructure
+
+```bash
+cd infra/terraform
+
+terraform init
+
+terraform apply
+```
+
+Terraform provisions:
+
+- EC2 Instance
+- Security Group
+- Elastic IP
+
+---
+
+## 3. Configure Server
+
+```bash
+cd ../ansible
+
+ansible-playbook -i inventory.ini playbook.yml
+```
+
+Ansible automatically installs:
+
+- Docker
+- Docker Compose
+- Git
+- Required dependencies
+
+---
+
+## 4. Deploy Application
+
+```bash
+docker compose up -d --build
+```
+
+The application will be available at:
+
+```
+http://13.205.195.122
+```
+
+---
+
+# Repository Structure
+
+```
+production-grade-chat-app
+│
+├── .github
+│   └── workflows
+│       └── deploy.yml
+│
+├── app
+│
+├── frontend
+│
+├── infra
+│   ├── terraform
+│   └── ansible
+│
+├── diagrams
+│
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── README.md
+│
+└── screenshots
+```
+
+---
+
+# Screenshots
+
+## Architecture Diagram
+
+//screenshot
+
+---
+
+## AWS EC2 Instance
+
+//screenshot
+
+---
+
+## Terraform Apply
+
+//screenshot
+
+---
+
+## Ansible Playbook
+
+//screenshot
+
+---
+
+## GitHub Actions CI/CD
+
+//screenshot
+
+---
+
+## Running Application
+
+//screenshot
+
+---
+
+# Key Learnings
+
+This project provided hands-on experience with:
+
+- Docker containerization
+- Docker Compose orchestration
+- Docker networking
+- Nginx Reverse Proxy
+- WebSocket deployment
+- AWS EC2 deployment
+- Infrastructure as Code using Terraform
+- Configuration Management using Ansible
+- GitHub Actions CI/CD
+- Production deployment workflows
+- Infrastructure troubleshooting and debugging
+
+---
+
+# Future Improvements
+
+- Configure HTTPS using Let's Encrypt
+- Deploy behind an AWS Application Load Balancer
+- Add monitoring using Prometheus and Grafana
+- Introduce Redis for session management
+- Deploy on Kubernetes
+- Implement Auto Scaling Groups
+
+---
+
+# Author
+
+**Saksham Joshi**
+
+DevOps | Cloud | Infrastructure Automation | CI/CD | AWS
