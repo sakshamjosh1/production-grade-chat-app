@@ -8,7 +8,7 @@
 
 # Project Overview
 
-This project was completed as part of a **DevOps Engineer Internship Assignment** focused on deploying a production-grade WebSocket chat application.
+This project was completed as part of a **DevOps Engineer Assignment** focused on deploying a production-grade WebSocket chat application.
 
 The objective was to take a deliberately misconfigured application, identify and resolve deployment issues, and successfully deploy it on AWS while following production-oriented DevOps practices.
 
